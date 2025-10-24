@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Soil Moisture Drone Simulation</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/css/bootstrap.min.css" rel="stylesheet">
+<style>
+.map-container { width: 100%; height: 500px; margin-bottom: 20px; }
+</style>
+</head>
+<body class="bg-light">
+<div class="container py-5">
+  <h1 class="mb-4 text-center">Soil Moisture & Drone Routing Simulation</h1>
+
+  <!-- Input Form -->
+  <div class="card p-4 shadow-sm bg-white mb-4">
+    <form method="POST" action="/run">
+      <div class="row mb-3">
+        <div class="col">
+          <label>Center Latitude</label>
+          <input class="form-control" type="number" step="0.0001" name="center_lat" value="12.969">
+        </div>
+        <div class="col">
+          <label>Center Longitude</label>
+          <input class="form-control" type="number" step="0.0001" name="center_lon" value="79.159">
+        </div>
+      </div>
+      <div class="row mb-3">
+        <div class="col">
+          <label>Scatter Radius (km)</label>
+          <input class="form-control" type="number" step="0.1" name="radius_km" value="1.0">
+        </div>
+        <div class="col">
+          <label>Number of Sensors</label>
+          <input class="form-control" type="number" name="n_sensors" value="30">
+        </div>
+      </div>
+      <button class="btn btn-primary" type="submit">Run Simulation</button>
+    </form>
+  </div>
+
+  {% if summary %}
+  <!-- Summary -->
+  <div class="card p-4 shadow-sm bg-white mb-4">
+    <h3>Simulation Summary</h3>
+    <ul>
+      <li>Total sensors: {{ summary.n_sensors }}</li>
+      <li>Dry sensors: {{ summary.dry_count }}</li>
+      <li>Nearest Neighbor distance: {{ summary.nn_distance }} km</li>
+      <li>2-Opt optimized distance: {{ summary.opt_distance }} km</li>
+    </ul>
+    <a class="btn btn-primary me-2" href="/download/all">Download All Sensors CSV</a>
+    <a class="btn btn-danger me-2" href="/download/dry">Download Dry Sensors CSV</a>
+    <a class="btn btn-success" href="/download/route">Download Drone Route CSV</a>
+  </div>
+
+  <!-- Maps -->
+  <div class="map-container">
+    {{ map_all|safe }}
+  </div>
+  <div class="map-container">
+    {{ map_dry|safe }}
+  </div>
+  {% endif %}
+</div>
+</body>
+</html>
