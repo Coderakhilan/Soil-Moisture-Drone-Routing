@@ -1,50 +1,92 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>IoT Soil Moisture Dashboard</title>
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-<style>
-body{background:#f4f4f9}.map-container{height:500px;margin-bottom:20px}
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>IoT Soil Moisture & Power Station Simulation</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body { background: #f4f7fb; font-family: "Poppins", sans-serif; }
+    .container { margin-top: 40px; margin-bottom: 60px; }
+    .card { border: none; box-shadow: 0 4px 10px rgba(0,0,0,0.08); border-radius: 14px; }
+    .card-header { font-weight: 600; color: white; border-radius: 14px 14px 0 0; }
+    .map-container { border-radius: 12px; overflow: hidden; margin-top: 10px; }
+  </style>
 </head>
-<body>
-<div class="container py-4">
-  <h1 class="mb-4">IoT Soil Moisture Simulation</h1>
-  <form method="POST" class="card p-4 shadow-sm mb-4 bg-white">
-    <div class="mb-3">
-      <label>Center Latitude</label>
-      <input class="form-control" type="number" step="0.0001" name="center_lat" value="12.969">
-    </div>
-    <div class="mb-3">
-      <label>Center Longitude</label>
-      <input class="form-control" type="number" step="0.0001" name="center_lon" value="79.159">
-    </div>
-    <div class="mb-3">
-      <label>Sensor Scatter Radius (km)</label>
-      <input class="form-control" type="number" step="0.1" name="radius_km" value="1.0">
-    </div>
-    <div class="mb-3">
-      <label>Number of Sensors</label>
-      <input class="form-control" type="number" name="n_sensors" value="10">
-    </div>
-    <button class="btn btn-primary" type="submit">Run Simulation</button>
-  </form>
 
-  {% if summary %}
-  <div class="card p-4 shadow-sm bg-white mb-4">
-    <h3>Simulation Summary</h3>
-    <ul>
-      <li>Total sensors: {{ summary.n_sensors }}</li>
-      <li>Dry sensors: {{ summary.dry_count }}</li>
-      <li>Nearest Neighbor distance: {{ summary.nn_distance }} km</li>
-      <li>2-Opt optimized distance: {{ summary.opt_distance }} km</li>
-    </ul>
+<body>
+  <div class="container">
+    <div class="row">
+      <div class="col-md-4">
+        <div class="card">
+          <div class="card-header text-center bg-primary">
+            IoT Soil Moisture & Power Station Simulation
+          </div>
+          <div class="card-body">
+            <form method="POST">
+              <label>Center Latitude:</label>
+              <input type="text" name="center_lat" value="12.969" class="form-control" required>
+              <label>Center Longitude:</label>
+              <input type="text" name="center_lon" value="79.159" class="form-control" required>
+              <label>Radius (km):</label>
+              <input type="number" name="radius_km" value="1" step="0.1" class="form-control" required>
+              <label>Number of Sensors:</label>
+              <select name="n_sensors" class="form-control" required>
+                <option value="16">16</option>
+                <option value="36">36</option>
+                <option value="40">40</option>
+                <option value="44">44</option>
+                <option value="50">50</option>
+              </select>
+              <label>Tile Area (mm²):</label>
+              <input type="number" name="tile_area_mm2" value="100" class="form-control" required>
+              <label>Power per Sensor (mV):</label>
+              <input type="number" name="power_per_sensor_mV" value="1756" class="form-control" required>
+              <button type="submit" class="btn btn-primary mt-3">Run Simulation</button>
+            </form>
+          </div>
+        </div>
+
+        {% if summary %}
+        <div class="card mt-4">
+          <div class="card-header text-center bg-success">Simulation Summary</div>
+          <div class="card-body">
+            <ul class="list-group list-group-flush">
+              <li class="list-group-item"><strong>Total Sensors:</strong> {{ summary.n_sensors }}</li>
+              <li class="list-group-item"><strong>Dry Sensors:</strong> {{ summary.dry_count }}</li>
+              <li class="list-group-item"><strong>Total Area (m²):</strong> {{ summary.total_area }}</li>
+              <li class="list-group-item"><strong>Total Power (mV):</strong> {{ summary.total_power }}</li>
+              <li class="list-group-item"><strong>Optimized Power (mV):</strong> {{ summary.optimized_power }}</li>
+              <li class="list-group-item"><strong>Power Station Capacity (mV):</strong> {{ summary.station_capacity }}</li>
+              <li class="list-group-item"><strong>Power Stations Needed:</strong> {{ summary.stations_needed }}</li>
+              <li class="list-group-item"><strong>Total Station Output (mV):</strong> {{ summary.station_output }}</li>
+              <li class="list-group-item"><strong>NN Distance (km):</strong> {{ summary.nn_distance }}</li>
+              <li class="list-group-item"><strong>Optimized Distance (km):</strong> {{ summary.opt_distance }}</li>
+            </ul>
+          </div>
+        </div>
+        {% endif %}
+      </div>
+
+      <div class="col-md-8">
+        {% if summary %}
+        <div class="card mb-4">
+          <div class="card-header text-center bg-success">All Sensors Map</div>
+          <div class="card-body map-container">{{ map_all|safe }}</div>
+        </div>
+        <div class="card mb-4">
+          <div class="card-header text-center bg-info">Route Optimized View</div>
+          <div class="card-body map-container">{{ map_route|safe }}</div>
+        </div>
+        <div class="card">
+          <div class="card-header text-center bg-warning">Power Station Planning View ⚡</div>
+          <div class="card-body map-container">{{ map_power|safe }}</div>
+        </div>
+        {% else %}
+        <div class="text-center mt-5"><h4 class="text-muted">Run the simulation to view maps</h4></div>
+        {% endif %}
+      </div>
+    </div>
   </div>
-  <div class="map-container">{{ map_all|safe }}</div>
-  <div class="map-container">{{ map_dry|safe }}</div>
-  {% endif %}
-</div>
 </body>
 </html>
